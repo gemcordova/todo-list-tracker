@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="./style.css" />
+		<title>Todo List Tracker</title>
+	</head>
+
+	<body>
+		<section class="app-container">
+			<h1 class="todo-header">Todo List Tracker</h1>
+			<!-- For inputs -->
+			<form class="input-container">
+				<input
+					type="text"
+					placeholder="Add a task..."
+					name="taskInput"
+					id="taskInput"
+					class="task-input"
+				/>
+				<button id="addTaskBtn" class="add-task-btn">
+					<img src="./img/add-icon.png" class="add-task-img" />
+				</button>
+			</form>
+
+			<!-- For list -->
+			<div class="list-container">
+				<img
+					src="./img/empty.png"
+					alt="Empty"
+					id="emptyImg"
+					class="empty-img"
+					width="200"
+					height="200"
+				/>
+				<ul id="renderedList" class="rendered-list"></ul>
+			</div>
+		</section>
+
+		<script src="./main.js"></script>
+	</body>
+</html>
