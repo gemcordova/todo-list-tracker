@@ -1,65 +1,107 @@
-const taskListCollection = [];
+document.addEventListener('DOMContentLoaded', () => {
+	const STORAGE_KEY = 'tasks';
+	const taskListCollection = [];
 
-// Document Objects
-const taskInput = document.getElementById('taskInput');
-const addTaskBtn = document.getElementById('addTaskBtn');
-let renderedList = document.getElementById('renderedList');
+	const taskInput = document.getElementById('taskInput');
+	const addTaskBtn = document.getElementById('addTaskBtn');
+	const renderedList = document.getElementById('renderedList');
+	const emptyImg = document.getElementById('emptyImg');
 
-// Save tasks to localStorage
-function saveTasks() {
-	localStorage.setItem('tasks', JSON.stringify(taskListCollection));
-}
-
-// Load tasks from localStorage
-function loadTasks() {
-	const saved = localStorage.getItem('tasks');
-	if (saved) {
-		const parsed = JSON.parse(saved);
-		taskListCollection.push(...parsed); // keep same array reference
-		renderList();
-	}
-}
-
-// Remove task from Array
-function removeTask(i) {
-	taskListCollection.splice(i, 1);
-	saveTasks();
-	renderList();
-}
-
-// Render the List
-function renderList() {
-	renderedList.innerHTML = '';
-
-	if (taskListCollection.length > 0) {
-		document.getElementById('emptyImg').classList.add('empty-img-active');
-
-		for (let i = 0; i < taskListCollection.length; i++) {
-			const task = taskListCollection[i];
-			renderedList.innerHTML += `<li>${task} <button onclick='removeTask(${i})'>Delete</button></li>`;
+	function saveTasks() {
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(taskListCollection));
+		} catch (err) {
+			console.error('Failed to save to localStorage:', err);
 		}
-	} else {
-		document.getElementById('emptyImg').classList.remove('empty-img-active');
 	}
-}
 
-// Add task to Array
-function addTask() {
-	if (taskInput.value.trim() !== '') {
-		taskListCollection.push(taskInput.value.trim());
-		taskInput.value = '';
-		saveTasks(); // save after adding
+	function loadTasks() {
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (!saved) return;
+			const parsed = JSON.parse(saved);
+			if (Array.isArray(parsed)) {
+				taskListCollection.push(...parsed);
+			} else {
+				// If saved data is malformed, ignore it and clear it
+				console.warn(
+					'Saved tasks is not an array — clearing localStorage key.'
+				);
+				localStorage.removeItem(STORAGE_KEY);
+			}
+		} catch (err) {
+			console.error('Failed to load tasks from localStorage:', err);
+		}
+	}
+
+	function renderList() {
+		renderedList.innerHTML = ''; // clear
+
+		if (taskListCollection.length > 0) {
+			emptyImg?.classList?.add('empty-img-active');
+			// Build nodes rather than concatenating HTML (safer)
+			taskListCollection.forEach((task, i) => {
+				const li = document.createElement('li');
+				li.textContent = task + ' ';
+
+				const delBtn = document.createElement('button');
+				delBtn.type = 'button';
+				delBtn.className = 'delete-btn';
+				delBtn.dataset.index = i;
+				delBtn.textContent = 'Delete';
+
+				li.appendChild(delBtn);
+				renderedList.appendChild(li);
+			});
+		} else {
+			emptyImg?.classList?.remove('empty-img-active');
+		}
+	}
+
+	function removeTask(index) {
+		if (index < 0 || index >= taskListCollection.length) return;
+		taskListCollection.splice(index, 1);
+		saveTasks();
 		renderList();
-	} else {
-		alert('Please input a Task');
 	}
-}
 
-// Event Listener
-addTaskBtn.addEventListener('click', (e) => {
-	e.preventDefault();
-	addTask();
+	function addTask() {
+		const value = (taskInput.value || '').trim();
+		if (!value) {
+			alert('Please input a Task');
+			return;
+		}
+		taskListCollection.push(value);
+		taskInput.value = '';
+		saveTasks();
+		renderList();
+		taskInput.focus();
+	}
+
+	// Event listeners
+	addTaskBtn?.addEventListener('click', (e) => {
+		e.preventDefault();
+		addTask();
+	});
+
+	// Optional: allow Enter in input to add
+	taskInput?.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			addTask();
+		}
+	});
+
+	// Event delegation for delete buttons
+	renderedList?.addEventListener('click', (e) => {
+		const btn = e.target;
+		if (btn && btn.classList && btn.classList.contains('delete-btn')) {
+			const idx = Number(btn.dataset.index);
+			removeTask(idx);
+		}
+	});
+
+	// Initialize
+	loadTasks();
+	renderList();
 });
-
-// Load tasks on page load
-loadTasks();
